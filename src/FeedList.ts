@@ -1,4 +1,5 @@
-import { Panel, Group, vlayout, layoutConfig, log, HLayout, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout } from "doric";
+import { Panel, Group, vlayout, layoutConfig, log, HLayout, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
+import { isThisTypeNode } from "typescript";
 import Timeline from './timeline.json'
 import { rotatedArrow, sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap, sudukouReuseIdentifier } from './utils'
 
@@ -26,6 +27,7 @@ interface TimelineModel {
         imageList?: Array<TimelineImageInfo>,
         nickname: string,
         textContent?: string,
+        isExpanded?: boolean
     }>
 }
 
@@ -38,6 +40,7 @@ class FeedListModel {
         this.timeline = timeline
         this.pageIndex = pageIndex
         this.darkModel = darkModel
+        this.timeline.result.map(info => info.isExpanded = false)
     }
 
     // 模拟没有更多数据
@@ -50,6 +53,7 @@ class FeedListView extends ViewHolder {
     refreshView!: Refreshable
     // loadMoreTextView!: Text
     listView!: List
+    rightTextView!: Text
 
     sudukouWidth = Environment.screenWidth - sudukouMarginLeft - sudukouMarginRight - feedMargin
     // 以三张图片占满屏幕
@@ -58,6 +62,12 @@ class FeedListView extends ViewHolder {
     baseImageWidthFor2And4 = (this.sudukouWidth - sudukouGap) / 2.0
 
     build(root: Group) {
+
+        navbar(context).setTitle("Feed List")
+        navbar(context).setRight(text({
+            text: "黑夜"
+        }).also(it => this.rightTextView = it))
+
         vlayout([
             refreshable({
                 // header: rotatedArrow(),
@@ -194,10 +204,20 @@ class FeedListView extends ViewHolder {
         return sudukou        
     }
 
+    switchDarkMode = (isDark: Boolean) => {
+        this.rightTextView.text = isDark ? "白天" : "黑夜"
+        this.rightTextView.textColor = isDark ? Color.WHITE : Color.BLACK
+        this.listView.backgroundColor = isDark ? Color.BLACK : Color.WHITE
+        navbar(context).setBgColor(isDark ? Color.BLACK : Color.WHITE)
+    } 
+
     bind(s: FeedListModel) {
         this.refreshView.setRefreshing(context, false)
         // this.loadMoreTextView.text = s.isEnd ? '没有更多了~' : '加载中...'
 
+        // 白天黑夜模式
+        this.switchDarkMode(s.darkModel)
+        
         if (!s.isEnd) {
             this.listView.also(it => {
                 it.itemCount = s.timeline.result.length
@@ -228,7 +248,7 @@ class FeedListView extends ViewHolder {
                             }),
                             text({
                                 text: s.timeline.result[index].nickname || '',
-                                textColor: Color.parse("#111111"),
+                                textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
                                 textSize: 16
                             }),
                             text({
@@ -248,17 +268,32 @@ class FeedListView extends ViewHolder {
                             gravity: Gravity.CenterY
                         }),
 
-                        hlayout([
+                        vlayout([
                             text({
                                 text: s.timeline.result[index].textContent || '',
-                                textColor: Color.parse("#111111"),
+                                textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
                                 textSize: 16,
-                                maxLines: 0,
+                                maxLines: s.timeline.result[index].isExpanded ? 0 : 3,
                                 textAlignment: Gravity.Left,
                                 padding: {
                                     bottom: 10
                                 },
                             }),
+
+                            // mock
+                            (s.timeline.result[index].textContent || '').length >= 80 ? text({
+                                text: s.timeline.result[index].isExpanded ? '收起' : '展开',
+                                textSize: 14,
+                                textAlignment: Gravity.Left,
+                                textColor: Color.parse('#8854FF'),
+                                padding: {
+                                    bottom: 10
+                                },
+                                onClick: () => {
+                                    s.timeline.result[index].isExpanded = !s.timeline.result[index].isExpanded
+                                    this.bind(s)
+                                }
+                            }) : text({text : ''})
                         ], {
                             layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
                             left: sudukouMarginLeft
@@ -287,13 +322,22 @@ class FeedListView extends ViewHolder {
 }
 
 class FeedListVM extends ViewModel<FeedListModel, FeedListView> {
+
     onAttached(s: FeedListModel, vh: FeedListView) {
-        log('saadadawd')
-        log('saadadawd')
+        vh.rightTextView.onClick = () => {
+            this.updateState((state) => {
+                state.darkModel = !state.darkModel
+            })
+        }
+    }
+
+    expandContent() {
+
     }
 
     onBind(s: FeedListModel, vh: FeedListView) {
         vh.bind(s)
+        log('ssss')
     }
 }
 
@@ -312,6 +356,6 @@ class FeedListPanel extends VMPanel<FeedListModel, FeedListView> {
     }
 
     onShow() {
-        navbar(context).setTitle("feed-list")
+
     }
 }
