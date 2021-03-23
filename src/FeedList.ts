@@ -1,7 +1,7 @@
-import { Panel, Group, vlayout, layoutConfig, log, HLayout, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
+import { Panel, Group, vlayout, layoutConfig, log, HLayout, pullable, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
 import { isThisTypeNode } from "typescript";
 import Timeline from './timeline.json'
-import { rotatedArrow, sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap, sudukouReuseIdentifier } from './utils'
+import { icon_refresh, sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap, sudukouReuseIdentifier } from './utils'
 
 
 type DisplayImageInfo = {
@@ -32,26 +32,21 @@ interface TimelineModel {
 }
 
 class FeedListModel {
-    pageIndex: number
     timeline: TimelineModel
     darkModel: Boolean
+    end: Boolean
 
-    constructor(timeline: TimelineModel, darkModel: Boolean, pageIndex = 0) {
+    constructor(timeline: TimelineModel, darkModel: Boolean, end: Boolean) {
         this.timeline = timeline
-        this.pageIndex = pageIndex
         this.darkModel = darkModel
         this.timeline.result.map(info => info.isExpanded = false)
-    }
-
-    // 模拟没有更多数据
-    get isEnd() {
-        return this.pageIndex >= 5
+        this.end = end
     }
 }
 
 class FeedListView extends ViewHolder {
     refreshView!: Refreshable
-    // loadMoreTextView!: Text
+    loadMoreTextView!: Text
     listView!: List
     rightTextView!: Text
 
@@ -70,29 +65,53 @@ class FeedListView extends ViewHolder {
 
         vlayout([
             refreshable({
-                // header: rotatedArrow(),
+                header: this.rotatedArrow(),
                 content: list({
-                    // loadMore: true,
-                    // loadMoreView: listItem(
-                    //     text({
-                    //         text: '加载中....',
-                    //         textColor: Color.parse("#999999"),
-                    //         textSize: 12,
-                    //         backgroundColor: Color.WHITE,
-                    //         layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST).configAlignment(Gravity.Center),
-                    //         height: 40,
-                    //     }).also(it => this.loadMoreTextView = it)
-                    // ),
-                    
-
-                    itemCount: 0,
-                    renderItem: () => new ListItem,
+                    loadMore: true,
+                    loadMoreView: listItem(
+                        text({
+                            text: '加载中....',
+                            textColor: Color.parse("#999999"),
+                            textSize: 12,
+                            backgroundColor: Color.WHITE,
+                            layoutConfig: layoutConfig().most().configAlignment(Gravity.Center),
+                            height: 40,
+                        }).also(it => this.loadMoreTextView = it),
+                        {
+                            backgroundColor: Color.WHITE,
+                            layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST).configAlignment(Gravity.Center),
+                            height: 40,
+                        }
+                    ),
                     layoutConfig: layoutConfig().most()
                 }).also(it => this.listView = it)
             }).also(it => this.refreshView = it)
         ]).apply({
             layoutConfig: layoutConfig().most()
         }).in(root)
+    }
+
+    rotatedArrow() {
+        let refreshImage: Image
+        return pullable(
+            stack([
+                image({
+                    layoutConfig: layoutConfig().just().configMargin({ top: 50, bottom: 10, }),
+                    width: 30,
+                    height: 30,
+                    imageBase64: icon_refresh,
+                }).also(v => refreshImage = v),
+            ]), {
+            startAnimation: () => {
+                log('startAnimation')
+            },
+            stopAnimation: () => {
+                log('stopAnimation')
+            },
+            setPullingDistance: (distance: number) => {
+                refreshImage.rotation = distance / 30
+            },
+        })
     }
 
     getImageDisplayInfo(imageInfo: TimelineImageInfo, count: number): DisplayImageInfo {
@@ -146,7 +165,11 @@ class FeedListView extends ViewHolder {
         const count = imageList.length
         let flHeight = 0
         let flWidth = this.sudukouWidth
-        if (count === 1) {
+
+        if (count === 0) {
+            flHeight = 0
+            flWidth = 0
+        } else if (count === 1) {
             const displayInfo = this.getImageDisplayInfo(imageList[0], count)
             flHeight = displayInfo.imageH
             flWidth = displayInfo.imageW
@@ -213,115 +236,119 @@ class FeedListView extends ViewHolder {
 
     bind(s: FeedListModel) {
         this.refreshView.setRefreshing(context, false)
-        // this.loadMoreTextView.text = s.isEnd ? '没有更多了~' : '加载中...'
+        this.loadMoreTextView.text = s.end ? '没有更多了~' : '加载中...'
 
         // 白天黑夜模式
         this.switchDarkMode(s.darkModel)
-        
-        if (!s.isEnd) {
-            this.listView.also(it => {
-                it.itemCount = s.timeline.result.length
-                it.renderItem = (index) => listItem(
-                    vlayout([
-                        hlayout([
-                            stack([
-                                image({
-                                    imageUrl: s.timeline.result[index].avatar || '',
-                                    layoutConfig: layoutConfig().just(),
-                                    width: 40,
-                                    height: 40,
-                                    scaleType: ScaleType.ScaleAspectFit,
-                                    corners: 20,
-                                    top: 12,
-                                    left: 12
-                                }),
-                                image({
-                                    imageUrl: s.timeline.result[index].avatarFrame || '',
-                                    layoutConfig: layoutConfig().just(),
-                                    width: 64,
-                                    height: 64,
-                                    scaleType: ScaleType.ScaleAspectFit
-                                })
-                            ], {
-                                layoutConfig: layoutConfig().most().configWidth(LayoutSpec.JUST),
-                                width: 64
-                            }),
-                            text({
-                                text: s.timeline.result[index].nickname || '',
-                                textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
-                                textSize: 16
-                            }),
-                            text({
-                                text: s.timeline.result[index].age.toString(),
+        this.listView.also(it => {
+            it.itemCount = s.timeline.result.length
+            it.renderItem = (index) => listItem(
+                vlayout([
+                    hlayout([
+                        stack([
+                            image({
+                                imageUrl: s.timeline.result[index].avatar || '',
                                 layoutConfig: layoutConfig().just(),
-                                left: 10,
-                                width: 30,
-                                height: 14,
-                                textSize: 10,
-                                corners: 7,
-                                backgroundColor: s.timeline.result[index].gender === 1 ? Color.parse("#EEEEEE") : Color.parse('#FFEDF2'),
-                                textColor: s.timeline.result[index].gender === 1 ? Color.parse("#999999") : Color.parse('#FF6E94'),
+                                width: 40,
+                                height: 40,
+                                scaleType: ScaleType.ScaleAspectFit,
+                                corners: 20,
+                                top: 12,
+                                left: 12
+                            }),
+                            image({
+                                imageUrl: s.timeline.result[index].avatarFrame || '',
+                                layoutConfig: layoutConfig().just(),
+                                width: 64,
+                                height: 64,
+                                scaleType: ScaleType.ScaleAspectFit
                             })
                         ], {
-                            layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
-                            height: 64,
-                            gravity: Gravity.CenterY
+                            layoutConfig: layoutConfig().most().configWidth(LayoutSpec.JUST),
+                            width: 64
                         }),
-
-                        vlayout([
-                            text({
-                                text: s.timeline.result[index].textContent || '',
-                                textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
-                                textSize: 16,
-                                maxLines: s.timeline.result[index].isExpanded ? 0 : 3,
-                                textAlignment: Gravity.Left,
-                                padding: {
-                                    bottom: 10
-                                },
-                            }),
-
-                            // mock
-                            (s.timeline.result[index].textContent || '').length >= 80 ? text({
-                                text: s.timeline.result[index].isExpanded ? '收起' : '展开',
-                                textSize: 14,
-                                textAlignment: Gravity.Left,
-                                textColor: Color.parse('#8854FF'),
-                                padding: {
-                                    bottom: 10
-                                },
-                                onClick: () => {
-                                    s.timeline.result[index].isExpanded = !s.timeline.result[index].isExpanded
-                                    this.bind(s)
-                                }
-                            }) : text({text : ''})
-                        ], {
-                            layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
-                            left: sudukouMarginLeft
+                        text({
+                            text: s.timeline.result[index].nickname || '',
+                            textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
+                            textSize: 16
                         }),
-
-                        (s.timeline.result[index].imageList || []).length > 0 ? this.getImageSudokuFlowLayout({
+                        text({
+                            text: s.timeline.result[index].age.toString(),
                             layoutConfig: layoutConfig().just(),
-                            left: sudukouMarginLeft,
-                            corners: 16,
-                        }, s.timeline.result[index].imageList!) : text({})
+                            left: 10,
+                            width: 30,
+                            height: 14,
+                            textSize: 10,
+                            corners: 7,
+                            backgroundColor: s.timeline.result[index].gender === 1 ? Color.parse("#EEEEEE") : Color.parse('#FFEDF2'),
+                            textColor: s.timeline.result[index].gender === 1 ? Color.parse("#999999") : Color.parse('#FF6E94'),
+                        })
                     ], {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.FIT),
-                        padding: {
-                            left: feedMargin,
-                            right: sudukouMarginRight,
-                            top: feedMargin,
-                            bottom: feedMargin
-                        }
-                    })
-                , {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 64,
+                        gravity: Gravity.CenterY
+                    }),
+
+                    vlayout([
+                        text({
+                            text: s.timeline.result[index].textContent || '',
+                            textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
+                            textSize: 16,
+                            maxLines: s.timeline.result[index].isExpanded ? 0 : 3,
+                            textAlignment: Gravity.Left,
+                            padding: {
+                                bottom: 10
+                            },
+                        }),
+
+                        // mock
+                        (s.timeline.result[index].textContent || '').length >= 80 ? text({
+                            text: s.timeline.result[index].isExpanded ? '收起' : '展开',
+                            textSize: 14,
+                            textAlignment: Gravity.Left,
+                            textColor: Color.parse('#8854FF'),
+                            padding: {
+                                bottom: 10
+                            },
+                            onClick: () => {
+                                s.timeline.result[index].isExpanded = !s.timeline.result[index].isExpanded
+                                this.bind(s)
+                            }
+                        }) : text({
+                            text: '',
+                            padding: {
+                                bottom: 0
+                            },
+                        })
+                    ], {
+                        layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
+                        left: sudukouMarginLeft
+                    }),
+
+                    this.getImageSudokuFlowLayout({
+                        layoutConfig: layoutConfig().just(),
+                        left: sudukouMarginLeft,
+                        corners: 16,
+                    }, s.timeline.result[index].imageList || [])
+                ], {
                     layoutConfig: layoutConfig().most().configHeight(LayoutSpec.FIT),
+                    padding: {
+                        left: feedMargin,
+                        right: sudukouMarginRight,
+                        top: feedMargin,
+                        bottom: feedMargin
+                    }
                 })
+            , {
+                layoutConfig: layoutConfig().most().configHeight(LayoutSpec.FIT),
             })
-        }
+        })
     }
 }
 
 class FeedListVM extends ViewModel<FeedListModel, FeedListView> {
+    // 模拟分页，设定总共3页
+    private pageIndex = 1
 
     onAttached(s: FeedListModel, vh: FeedListView) {
         vh.rightTextView.onClick = () => {
@@ -329,15 +356,46 @@ class FeedListVM extends ViewModel<FeedListModel, FeedListView> {
                 state.darkModel = !state.darkModel
             })
         }
-    }
 
-    expandContent() {
+        vh.refreshView.onRefresh = () => {
+            setTimeout(() => {
+                vh.refreshView.setRefreshing(context, false) 
+                this.pageIndex = 1
+                const model = new FeedListModel(Timeline, s.darkModel, false)
+                this.updateState((state) => {
+                    state.darkModel = model.darkModel
+                    state.end = model.end
+                    state.timeline.result = model.timeline.result
+                })
+            }, 1000)
+        }
 
+        vh.listView.onLoadMore = () => {
+            if (this.pageIndex === 1) {
+                this.pageIndex++;
+                this.updateState((state) => {
+                    state.end = false
+                    state.timeline.result = s.timeline.result
+                })
+            } else {
+                if (this.pageIndex <= 3) {
+                    this.pageIndex++;
+                    const newTimeLine: TimelineModel = Timeline
+                    const deepCopyTimeline: TimelineModel = JSON.parse(JSON.stringify(newTimeLine))
+                    deepCopyTimeline.result.map(info => info.isExpanded = false)
+                    let result = s.timeline.result.concat(deepCopyTimeline.result)
+
+                    this.updateState((state) => {
+                        state.end = (this.pageIndex === 3)
+                        state.timeline.result = result
+                    })
+                }
+            }
+        }
     }
 
     onBind(s: FeedListModel, vh: FeedListView) {
         vh.bind(s)
-        log('ssss')
     }
 }
 
@@ -352,7 +410,7 @@ class FeedListPanel extends VMPanel<FeedListModel, FeedListView> {
     }
 
     getState(): FeedListModel {
-        return new FeedListModel(Timeline, false)
+        return new FeedListModel(Timeline, false, false)
     }
 
     onShow() {

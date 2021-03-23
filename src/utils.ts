@@ -54,26 +54,3 @@ export function title(str: string) {
         height: 50,
     })
 }
-
-export function rotatedArrow() {
-    let refreshImage: Image
-    return pullable(
-        stack([
-            image({
-                layoutConfig: layoutConfig().just().configMargin({ top: 50, bottom: 10, }),
-                width: 30,
-                height: 30,
-                imageBase64: icon_refresh,
-            }).also(v => refreshImage = v),
-        ]), {
-        startAnimation: () => {
-            log('startAnimation')
-        },
-        stopAnimation: () => {
-            log('stopAnimation')
-        },
-        setPullingDistance: (distance: number) => {
-            refreshImage.rotation = distance / 30
-        },
-    })
-}
