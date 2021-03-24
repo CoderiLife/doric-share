@@ -1,6 +1,7 @@
-import { Panel, Group, vlayout, layoutConfig, log, HLayout, pullable, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
+import { Panel, Group, vlayout, layoutConfig, popover, log, HLayout, pullable, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
 import { isThisTypeNode } from "typescript";
 import Timeline from './timeline.json'
+import {PhotoBrowserDemoPanel} from './PhotoBrowserDemo'
 import { icon_refresh, sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap, sudukouReuseIdentifier } from './utils'
 
 
@@ -160,7 +161,7 @@ class FeedListView extends ViewHolder {
             scaleType
         }
     }
-      
+        
     getImageSudokuFlowLayout(config: Partial<HLayout>, imageList: Array<TimelineImageInfo>): HLayout {
         const count = imageList.length
         let flHeight = 0
@@ -206,6 +207,16 @@ class FeedListView extends ViewHolder {
                     width: displayInfo.imageW,
                     height: displayInfo.imageH,
                     scaleType: displayInfo.scaleType,
+
+                    onClick: () => {
+                        navigator(context).push(PhotoBrowserDemoPanel, {
+                            animated: true,
+                            extra: {
+                                current: index,
+                                source: imageList
+                            }
+                        })
+                    }
                 })
             )
         })
@@ -395,6 +406,8 @@ class FeedListVM extends ViewModel<FeedListModel, FeedListView> {
     }
 
     onBind(s: FeedListModel, vh: FeedListView) {
+        log('wdqwdqwdwq')
+        log('wdqwdqwdwq')
         vh.bind(s)
     }
 }
