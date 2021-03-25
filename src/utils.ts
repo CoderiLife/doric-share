@@ -49,7 +49,7 @@ export function title(str: string) {
         layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST),
         textSize: 30,
         textColor: Color.WHITE,
-        backgroundColor: colors[1],
+        backgroundColor: colors[4],
         textAlignment: gravity().center(),
         height: 50,
     })

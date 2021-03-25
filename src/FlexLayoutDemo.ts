@@ -1,48 +1,182 @@
-import { Panel, Group, vlayout, layoutConfig, hlayout, Gravity,Justify, text, Text, Color, navbar, log, flexlayout, Direction, FlexDirection, Align, LayoutSpec, Display } from "doric";
+import { Panel, Group, vlayout, layoutConfig, hlayout, Gravity,Justify, text, Text, Color, navbar, log, flexlayout, Direction, FlexDirection, Align, LayoutSpec, Display, Wrap, CENTER, scroller } from "doric";
+import { colors, title } from "./utils";
 
-/*
-    1. A,B两个控件占满一行，B宽度固定，B紧挨着A显示，当A的内容特别多的时候，B固定在最右侧，A超出的内容显示...
-    2. A,B两个控件占满一行，B宽度固定, B显示在最右侧，当A的内容特别多的时候，A超出的内容显示... 
-        使用 justifyContent: Justify.SPACE_BETWEEN
-*/
 @Entry
 export class FlexLayoutDemo extends Panel {
-    onShow() {
-        navbar(context).setTitle("flex-layout")
+    onCreate() {
+        navbar(context).setTitle("Flex Layout")
     }
+
     build(rootView: Group): void {
-        hlayout([
-            flexlayout([
-                text({
-                    text: 'wwwwww',
-                    backgroundColor: Color.RED,
-                    flexConfig: {
-                        flexShrink: 1
-                    }
-                }),
-                text({
-                    text: 'Idea',
-                    backgroundColor: Color.GREEN,
-                    flexConfig: {
-                        width: 200,
-                        flexShrink: 0
-                    }
-                })
-            ], {
-                layoutConfig: layoutConfig().most(),
-                
-                flexConfig: {
-                    flexDirection: FlexDirection.ROW,
-                    // justifyContent: Justify.SPACE_BETWEEN
+        scroller(
+            vlayout(
+                [
+                    title('Default'),
+                    flexlayout(new Array(10).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW
+                        }
+                    }),
+    
+                    title('Wrap'),
+                    flexlayout(new Array(10).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 100,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW,
+                            flexWrap: Wrap.WRAP
+                        }
+                    }),
+    
+                    title('CENTER'),
+                    flexlayout(new Array(3).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW,
+                            justifyContent: Justify.CENTER
+                        }
+                    }),
+    
+                    title('SPACE_BETWEEN'),
+                    flexlayout(new Array(3).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW,
+                            justifyContent: Justify.SPACE_BETWEEN
+                        }
+                    }),
+    
+                    title('SPACE_AROUND'),
+                    flexlayout(new Array(3).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW,
+                            justifyContent: Justify.SPACE_AROUND
+                        }
+                    }),
+    
+                    title('SPACE_EVENLY'),
+                    flexlayout(new Array(3).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            width: 60,
+                            backgroundColor: colors[idx]
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW,
+                            justifyContent: Justify.SPACE_EVENLY
+                        }
+                    }),
+
+                    title('Flex'),
+                    flexlayout(new Array(3).fill(0).map((_, idx) => {
+                        return title(`item${idx}`).apply({
+                            layoutConfig: layoutConfig().just(),
+                            textSize: 18,
+                            height: 50,
+                            backgroundColor: colors[idx],
+                            flexConfig: {
+                                flex: idx === 1 ? 2 : 1
+                            }
+                        })
+                    }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW
+                        }
+                    }),
+
+                    title('FlexShrink'),
+                    flexlayout([
+                        title("111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111").apply({
+                            textSize: 18,
+                            height: 50,
+                            backgroundColor: colors[0],
+                            layoutConfig: layoutConfig().configHeight(LayoutSpec.JUST).configWidth(LayoutSpec.FIT),
+                            flexConfig: {
+                                flexShrink: 1
+                            }
+                        }),
+                        title("22222").apply({
+                            textSize: 18,
+                            height: 50,
+                            backgroundColor: colors[1],
+                            layoutConfig: layoutConfig().configHeight(LayoutSpec.JUST).configWidth(LayoutSpec.FIT),
+                            flexConfig: {
+                                flexShrink: 0,
+                                width: 100,
+                            }
+                        })
+                    ], {
+                        layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
+                        flexConfig: {
+                            flexDirection: FlexDirection.ROW
+                        }
+                    }),
+
+                    title('').apply({
+                        layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.JUST),
+                        backgroundColor: Color.WHITE,
+                        height: 100
+                    })
+                ],
+                {
+                    space: 10,
+                    layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT)
                 }
-            })
-        ])
-            .apply({
-                backgroundColor: Color.YELLOW,
-                layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.JUST),
-                height: 200,
-            })
-            .in(rootView)
+            ), {
+                layoutConfig: layoutConfig().most(),
+            }
+        ).in(rootView)
     }
 
 }

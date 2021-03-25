@@ -44,7 +44,7 @@ class PhotoBrowserDemoVM extends ViewModel<PhotoBrowserDemoModel, PhotoBrowserDe
 }
 
 @Entry
-export class PhotoBrowserDemoPanel extends VMPanel<PhotoBrowserDemoModel, PhotoBrowserDemoView> {
+export class PhotoBrowserDemo extends VMPanel<PhotoBrowserDemoModel, PhotoBrowserDemoView> {
     getViewHolderClass() {
         return PhotoBrowserDemoView
     }

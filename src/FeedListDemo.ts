@@ -111,7 +111,7 @@ class ListVM extends ViewModel<ListModel, ListVH> {
 }
 
 @Entry
-export class ListPanel extends VMPanel<ListModel, ListVH> {
+export class FeedListDemo extends VMPanel<ListModel, ListVH> {
     getViewModelClass() {
         return ListVM
     }

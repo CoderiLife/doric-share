@@ -1,4 +1,4 @@
-import { Panel, Group, scroller, vlayout, image, layoutConfig, LayoutSpec, Input, Gravity, log, stack, hlayout, text, CENTER, slider, slideItem, modal, Slider, Text, Color, View, Stack, animate, flowlayout, FlowLayoutItem, NestedSlider, ScaleType } from "doric";
+import { Panel, Group, scroller, vlayout, image, layoutConfig, LayoutSpec, Input, Gravity, log, stack, hlayout, text, CENTER, slider, slideItem, modal, Slider, Text, Color, View, Stack, animate, flowlayout, FlowLayoutItem, NestedSlider, ScaleType, navbar } from "doric";
 import { title, colors } from "./utils";
 
 @Entry
@@ -95,5 +95,9 @@ export class TabDemo extends Panel {
             },
             duration: 250,
         })
+    }
+
+    onCreate() {
+        navbar(context).setTitle('Tab Demo')
     }
 }

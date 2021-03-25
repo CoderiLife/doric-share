@@ -1,4 +1,3 @@
 export default [
-    'src/FeedList',
-    'src/TabDemo'
+    'src/FeedList'
 ]
