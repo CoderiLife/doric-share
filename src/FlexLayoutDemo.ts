@@ -21,8 +21,11 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
+                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
+                        height: 50,
                         flexConfig: {
-                            flexDirection: FlexDirection.ROW
+                            flexDirection: FlexDirection.ROW,
+                            width: Environment.screenWidth
                         }
                     }),
     
@@ -36,11 +39,10 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
-                        height: 100,
                         flexConfig: {
                             flexDirection: FlexDirection.ROW,
-                            flexWrap: Wrap.WRAP
+                            flexWrap: Wrap.WRAP,
+                            width: Environment.screenWidth
                         }
                     }),
     
@@ -54,11 +56,11 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
                         height: 50,
                         flexConfig: {
                             flexDirection: FlexDirection.ROW,
-                            justifyContent: Justify.CENTER
+                            justifyContent: Justify.CENTER,
+                            width: Environment.screenWidth
                         }
                     }),
     
@@ -72,11 +74,11 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
                         height: 50,
                         flexConfig: {
                             flexDirection: FlexDirection.ROW,
-                            justifyContent: Justify.SPACE_BETWEEN
+                            justifyContent: Justify.SPACE_BETWEEN,
+                            width: Environment.screenWidth
                         }
                     }),
     
@@ -90,11 +92,11 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
                         height: 50,
                         flexConfig: {
                             flexDirection: FlexDirection.ROW,
-                            justifyContent: Justify.SPACE_AROUND
+                            justifyContent: Justify.SPACE_AROUND,
+                            width: Environment.screenWidth
                         }
                     }),
     
@@ -108,11 +110,11 @@ export class FlexLayoutDemo extends Panel {
                             backgroundColor: colors[idx]
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
                         height: 50,
                         flexConfig: {
                             flexDirection: FlexDirection.ROW,
-                            justifyContent: Justify.SPACE_EVENLY
+                            justifyContent: Justify.SPACE_EVENLY,
+                            width: Environment.screenWidth
                         }
                     }),
 
@@ -128,10 +130,10 @@ export class FlexLayoutDemo extends Panel {
                             }
                         })
                     }), {
-                        layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST),
                         height: 50,
                         flexConfig: {
-                            flexDirection: FlexDirection.ROW
+                            flexDirection: FlexDirection.ROW,
+                            width: Environment.screenWidth
                         }
                     }),
 
@@ -157,9 +159,9 @@ export class FlexLayoutDemo extends Panel {
                             }
                         })
                     ], {
-                        layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
                         flexConfig: {
-                            flexDirection: FlexDirection.ROW
+                            flexDirection: FlexDirection.ROW,
+                            width: Environment.screenWidth
                         }
                     }),
 
@@ -174,7 +176,7 @@ export class FlexLayoutDemo extends Panel {
                     layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT)
                 }
             ), {
-                layoutConfig: layoutConfig().most(),
+                layoutConfig: layoutConfig().most()
             }
         ).in(rootView)
     }

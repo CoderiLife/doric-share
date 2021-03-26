@@ -1,4 +1,4 @@
-import { Panel, Group, vlayout, layoutConfig, navigator, Gravity, navbar } from "doric";
+import { Panel, Group, vlayout, layoutConfig, navigator, Gravity, navbar, log } from "doric";
 import { title } from './utils'
 import { FeedListDemo } from './FeedListDemo'
 import { FlexLayoutDemo } from './FlexLayoutDemo'
@@ -6,11 +6,12 @@ import { TabDemo } from './TabDemo'
 
 @Entry
 class DoricShare extends Panel {
-    onShow() {
+    onCreate() {
         navbar(context).setTitle("Doric Share")
     }
 
     build(rootView: Group): void {
+        
         vlayout([
             title('FeedList').apply({
                 onClick: () => {

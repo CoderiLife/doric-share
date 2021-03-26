@@ -1,3 +1,6 @@
 export default [
-    'src/FeedList'
+    // 'src/DoricShare',
+    'src/FeedListDemo',
+    'src/FlexLayoutDemo',
+    'src/TabDemo'
 ]
