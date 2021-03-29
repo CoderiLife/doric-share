@@ -1,8 +1,7 @@
-import { Panel, Group, vlayout, layoutConfig, popover, log, HLayout, pullable, View, LayoutSpec, Gravity, text, Text, Color, Refreshable, navbar, ViewModel, ViewHolder, VMPanel, refreshable, list, listItem, ListItem, List, hlayout, flexlayout, image, ScaleType, stack, Align, FlowLayout, flowlayout, flowItem, Image, FlowLayoutItem, Stack, coordinator, VLayout, navigator } from "doric";
-import { isThisTypeNode } from "typescript";
+import { Group, vlayout, layoutConfig, HLayout, LayoutSpec, Gravity, text, Text, Color, navbar, ViewModel, ViewHolder, VMPanel, list, listItem, List, hlayout, image, ScaleType, stack, Image, VLayout, navigator } from "doric";
 import Timeline from './timeline.json'
 import {PhotoBrowserDemo} from './PhotoBrowserDemo'
-import { icon_refresh, sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap, sudukouReuseIdentifier } from './utils'
+import {sudukouMarginLeft, sudukouMarginRight, feedMargin, sudukouGap} from './utils'
 
 
 type DisplayImageInfo = {
@@ -35,19 +34,15 @@ interface TimelineModel {
 class FeedListModel {
     timeline: TimelineModel
     darkModel: Boolean
-    end: Boolean
 
     constructor(timeline: TimelineModel, darkModel: Boolean, end: Boolean) {
         this.timeline = timeline
         this.darkModel = darkModel
         this.timeline.result.map(info => info.isExpanded = false)
-        this.end = end
     }
 }
 
 class FeedListView extends ViewHolder {
-    refreshView!: Refreshable
-    loadMoreTextView!: Text
     listView!: List
     rightTextView!: Text
 
@@ -58,60 +53,17 @@ class FeedListView extends ViewHolder {
     baseImageWidthFor2And4 = (this.sudukouWidth - sudukouGap) / 2.0
 
     build(root: Group) {
-
         navbar(context).setRight(text({
             text: "黑夜"
         }).also(it => this.rightTextView = it))
 
         vlayout([
-            refreshable({
-                header: this.rotatedArrow(),
-                content: list({
-                    loadMore: true,
-                    loadMoreView: listItem(
-                        text({
-                            text: '加载中....',
-                            textColor: Color.parse("#999999"),
-                            textSize: 12,
-                            backgroundColor: Color.WHITE,
-                            layoutConfig: layoutConfig().most().configAlignment(Gravity.Center),
-                            height: 40,
-                        }).also(it => this.loadMoreTextView = it),
-                        {
-                            backgroundColor: Color.WHITE,
-                            layoutConfig: layoutConfig().most().configHeight(LayoutSpec.JUST).configAlignment(Gravity.Center),
-                            height: 40,
-                        }
-                    ),
-                    layoutConfig: layoutConfig().most()
-                }).also(it => this.listView = it)
-            }).also(it => this.refreshView = it)
+            list({
+                layoutConfig: layoutConfig().most()
+            }).also(it => this.listView = it)
         ]).apply({
             layoutConfig: layoutConfig().most()
         }).in(root)
-    }
-
-    rotatedArrow() {
-        let refreshImage: Image
-        return pullable(
-            stack([
-                image({
-                    layoutConfig: layoutConfig().just().configMargin({ top: 50, bottom: 10, }),
-                    width: 30,
-                    height: 30,
-                    imageBase64: icon_refresh,
-                }).also(v => refreshImage = v),
-            ]), {
-            startAnimation: () => {
-                log('startAnimation')
-            },
-            stopAnimation: () => {
-                log('stopAnimation')
-            },
-            setPullingDistance: (distance: number) => {
-                refreshImage.rotation = distance / 30
-            },
-        })
     }
 
     getImageDisplayInfo(imageInfo: TimelineImageInfo, count: number): DisplayImageInfo {
@@ -228,8 +180,6 @@ class FeedListView extends ViewHolder {
     } 
 
     bind(s: FeedListModel) {
-        this.refreshView.setRefreshing(context, false)
-        this.loadMoreTextView.text = s.end ? '没有更多了~' : '加载中...'
 
         // 白天黑夜模式
         this.switchDarkMode(s.darkModel)
@@ -283,16 +233,21 @@ class FeedListView extends ViewHolder {
                     }),
 
                     vlayout([
-                        text({
-                            text: s.timeline.result[index].textContent || '',
+                        (s.timeline.result[index].textContent || '').length > 0 ? text({
+                            text: s.timeline.result[index].textContent!,
                             textColor: s.darkModel ? Color.WHITE : Color.parse("#111111"),
                             textSize: 16,
                             maxLines: s.timeline.result[index].isExpanded ? 0 : 3,
                             textAlignment: Gravity.Left,
-                            backgroundColor: Color.BLUE,
                             padding: {
                                 bottom: 10
                             },
+                        }) : text({text: '', 
+                            layoutConfig: layoutConfig().just(),
+                            height: 0,
+                            padding: {
+                                bottom: 0,
+                            }
                         }),
 
                         // mock
@@ -310,12 +265,13 @@ class FeedListView extends ViewHolder {
                             }
                         }) : text({
                             text: '',
+                            layoutConfig: layoutConfig().just(),
+                            height: 0,
                             padding: {
                                 bottom: 0
                             },
                         })
                     ], {
-                        backgroundColor: Color.GREEN,
                         layoutConfig: layoutConfig().configWidth(LayoutSpec.MOST).configHeight(LayoutSpec.FIT),
                         left: sudukouMarginLeft
                     }),
@@ -341,50 +297,11 @@ class FeedListView extends ViewHolder {
 }
 
 class FeedListVM extends ViewModel<FeedListModel, FeedListView> {
-    // 模拟分页，设定总共3页
-    private pageIndex = 1
-
     onAttached(s: FeedListModel, vh: FeedListView) {
         vh.rightTextView.onClick = () => {
             this.updateState((state) => {
                 state.darkModel = !state.darkModel
             })
-        }
-
-        vh.refreshView.onRefresh = () => {
-            setTimeout(() => {
-                vh.refreshView.setRefreshing(context, false) 
-                this.pageIndex = 1
-                const model = new FeedListModel(Timeline, s.darkModel, false)
-                this.updateState((state) => {
-                    state.darkModel = model.darkModel
-                    state.end = model.end
-                    state.timeline.result = model.timeline.result
-                })
-            }, 1000)
-        }
-
-        vh.listView.onLoadMore = () => {
-            if (this.pageIndex === 1) {
-                this.pageIndex++;
-                this.updateState((state) => {
-                    state.end = false
-                    state.timeline.result = s.timeline.result
-                })
-            } else {
-                if (this.pageIndex <= 3) {
-                    this.pageIndex++;
-                    const newTimeLine: TimelineModel = Timeline
-                    const deepCopyTimeline: TimelineModel = JSON.parse(JSON.stringify(newTimeLine))
-                    deepCopyTimeline.result.map(info => info.isExpanded = false)
-                    let result = s.timeline.result.concat(deepCopyTimeline.result)
-
-                    this.updateState((state) => {
-                        state.end = (this.pageIndex === 3)
-                        state.timeline.result = result
-                    })
-                }
-            }
         }
     }
 
