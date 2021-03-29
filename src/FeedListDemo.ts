@@ -57,13 +57,9 @@ class FeedListView extends ViewHolder {
             text: "黑夜"
         }).also(it => this.rightTextView = it))
 
-        vlayout([
-            list({
-                layoutConfig: layoutConfig().most()
-            }).also(it => this.listView = it)
-        ]).apply({
+        list({
             layoutConfig: layoutConfig().most()
-        }).in(root)
+        }).also(it => this.listView = it).in(root)
     }
 
     getImageDisplayInfo(imageInfo: TimelineImageInfo, count: number): DisplayImageInfo {
